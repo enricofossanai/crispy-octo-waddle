@@ -2087,7 +2087,7 @@ if a.graphPlot:
 
         comm = g.community_multilevel() # partitions nodes into groups/circles based on degree (?)
         
-        if g.vcount() <= 1:
+        if g.vcount() <= 15:
             graphLayout = g.layout("circle")
         elif g.vcount() <= 25:
             graphLayout = g.layout("kk")

@@ -1019,15 +1019,16 @@ def createsComparisonFile(story, chapter_idx, indexes, savename):
 
         if story.jointEigenvector != []:
             
-            newtext = [unicode('%-22s'%"Character" + ' %-10s'%"Degree" + ' %-20s'%"EV Centrality"+ ' %-20s'%"Betweenness" + ' %-25s'%"Normalized Betweenness" + ' %-20s'%"Closeness" + ' %-20s'%"Joint Centrality"+' %-20s'%"Conditional Centr."+ "\n")]
+            newtext = [unicode('%-22s'%"Character" + ' %-10s'%"Degree" + ' %-20s'%"Normalized Degree" + ' %-20s'%"EV Centrality"+ ' %-20s'%"Betweenness" + ' %-25s'%"Normalized Betweenness" + ' %-20s'%"Closeness" + ' %-20s'%"Joint Centrality"+' %-20s'%"Conditional Centr."+ "\n")]
         
             for p in indexes:
                 newtext.append(u'\n')
                 newtext.append(u'%-22s '% story.characters[p] )
                 newtext.append(u'%-10s '% graph.degree(p) )
+                newtext.append(u'%-20s '% (float(graph.degree(p)) / (activeChars-1)) ) #D_norm = (graph.degree(p) / (activeChars-1))
                 newtext.append(u'%-20s '% story.evcentlists[chapter_idx][p] )
                 newtext.append(u'%-20s '% graph.betweenness(p) )
-                newtext.append(u'%-25s '% graph.betweenness(p) )
+                newtext.append(u'%-25s '% (2 * graph.betweenness(p) / (activeChars**2 - 3*activeChars + 2)) )
                 newtext.append(u'%-20s '% graph.closeness(p) )
  ###               newtext.append(u'%-20s '% story.chapters[chapter_idx].evcents[p] )
                 newtext.append(u'%-20s '% story.jointEigenvector[chapter_idx*np + p] )
@@ -1035,15 +1036,16 @@ def createsComparisonFile(story, chapter_idx, indexes, savename):
 
         else: # no joint/cond cent
             
-            newtext = [unicode('%-22s'%"Character" + ' %-10s'%"Degree" + ' %-20s'%"EV Centrality"+ ' %-20s'%"Betweenness" + ' %-25s'%"Normalized Betweenness"+ ' %-20s'%"Closeness"  +"\n")]
+            newtext = [unicode('%-22s'%"Character" + ' %-10s'%"Degree" + ' %-20s'%"Normalized Degree"+ ' %-20s'%"EV Centrality"+ ' %-20s'%"Betweenness" + ' %-25s'%"Normalized Betweenness"+ ' %-20s'%"Closeness"  +"\n")]
         
             for p in indexes:
                 newtext.append(u'\n')
                 newtext.append(u'%-22s '% story.characters[p] )
                 newtext.append(u'%-10s '% graph.degree(p) )
+                newtext.append(u'%-20s '% (float(graph.degree(p)) / (activeChars-1)) ) #D_norm = (graph.degree(p) / (activeChars-1))
                 newtext.append(u'%-20s '% story.evcentlists[chapter_idx][p] )
                 newtext.append(u'%-20s '% graph.betweenness(p) )
-                newtext.append(u'%-25s '% graph.betweenness(p) )
+                newtext.append(u'%-25s '% (2 * graph.betweenness(p) / (activeChars**2 - 3*activeChars + 2)) ) #B_norm = 2 * B / (n^2 - 3*n + 2) 
                 newtext.append(u'%-20s '% graph.closeness(p) )
 
         if story.plottedIdx != []:
@@ -1078,14 +1080,14 @@ def createsComparisonFile(story, chapter_idx, indexes, savename):
                 
 
             # these commands below can be moved to a proper function and this function can be called here (as well as in other situations but in this case, one probably wants a printout in the screen hence the function must also receive a parameter indicating whether it is to be printed in this file or in the screen and then use print for the screen
-            newtext.append(u'\n\ndensity of graph: ')
-            newtext.append(u'%-20s '% graph.density() )
-            newtext.append(u'\ndiameter of graph: ')
-            newtext.append(u'%-20s '% graph.diameter() )
-            newtext.append(u'\nAvg. transitivity of graph: ')
-            newtext.append(u'%-20s '% graph.transitivity_avglocal_undirected(mode="zero") ) #  mode=nan produces mainly same transitivity
-            newtext.append(u'\nDegree distr. of graph: ')
-            newtext.append(u'%-20s '% graph.degree_distribution(bin_width=10) )  # o par. bin_width tem que ser passado pelo usuario pois depende da qtdd. de caps o grau varia
+        newtext.append(u'\n\ndensity of graph: ')
+        newtext.append(u'%-20s '% graph.density() )
+        newtext.append(u'\ndiameter of graph: ')
+        newtext.append(u'%-20s '% graph.diameter() )
+        newtext.append(u'\nAvg. transitivity of graph: ')
+        newtext.append(u'%-20s '% graph.transitivity_avglocal_undirected(mode="zero") ) #  mode=nan produces mainly same transitivity
+        newtext.append(u'\nDegree distr. of graph: ')
+        newtext.append(u'%-20s '% graph.degree_distribution(bin_width=10) )  # o par. bin_width tem que ser passado pelo usuario pois depende da qtdd. de caps o grau varia
 
         newfile.writelines(newtext)
         newfile.close()
@@ -2085,9 +2087,9 @@ if a.graphPlot:
 
         comm = g.community_multilevel() # partitions nodes into groups/circles based on degree (?)
         
-        if g.vcount() <= 10:
+        if g.vcount() <= 1:
             graphLayout = g.layout("circle")
-        elif g.vcount() <= 20:
+        elif g.vcount() <= 25:
             graphLayout = g.layout("kk")
         else: graphLayout = g.layout("auto")
         
@@ -2119,7 +2121,8 @@ if a.graphPlot:
 
 
         top = mostImportants(g.vs.degree())
-        color_list = ["red","blue","black","SeaGreen","NavyBlue","green","cyan","pink","orange","magenta","magenta","RosyBrown","gold","brown","LightSeaGreen"]
+        color_list = ["#FE2712","#0247FE","#000000","#355E3B","#000080","#00A550","#00FFFF","#FFC0CB","#FF7F00","#00FF00","#FF00FF","#800080","#FCC200","#964B00","#D3003F"]
+        #color names list: "red","blue","black","Forest Green","NavyBlue","green","cyan","pink","orange","Lime","magenta","patriarch","gold","brown","crimson"
  
         if g.vcount() <= 40:  
             g.vs["color"] = [color_list[0] if vertex.index == top[0]
@@ -2153,7 +2156,7 @@ if a.graphPlot:
                        bbox = [1200,1200])
                        
         else:
-            plt = plot(g, target = savefile, bbox = [1200,1200], vertex_label_size = 14, vertex_label_dist = 1.5, vertex_size = 14)
+            plt = plot(g, target = savefile, bbox = [1200,1200], vertex_label_size = 16, vertex_label_dist = 1.5, vertex_size = 14)
             
                    
  #  edge_color = [ interpolatesColors( [ pal_list[e.tuple[0]] , pal_list[e.tuple[1]] ], 7)[3] for e in g.es] )  # for edge color as interpolation of both vertex colors
